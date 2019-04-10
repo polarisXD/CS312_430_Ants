@@ -48,16 +48,13 @@ class Ant:
 
         # determine how much we want to go where
         desires = []
-        i = 0
-        while i < len(costs):
+        for i in range(len(costs)):
             cost = costs[i]
             pharmone = pharmones[i]
             time = times[i]
 
             desire = self.getDesire(cost, pharmone, time)
             desires.append(desire)
-
-            i = i + 1
 
         # decide where we want to go
 
