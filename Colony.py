@@ -1,3 +1,17 @@
+class Colony:
+    distanceMatrix = None
+    phermoneMatrix = None
+
+    optimalPath = []
+
+    # returns nothing
+    def initializeMatrices(self):
+        pass
+
+    # return best solution
+    def computeAproximation(self):
+        pass
+
 class Ant:
     currentPath = [] # list of tuples (x and y coordinates)
     totalPathCOst = 0
