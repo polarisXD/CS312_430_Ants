@@ -59,4 +59,11 @@ class Ant:
         # decide where we want to go
 
 
-
+    # returns a path (the currentPath of the ant at the end of its traversal)
+    def findPath(self, srcCityIndex):
+        # find path
+        pathNotFound = False
+        while pathNotFound:
+            break
+        # update pharmones
+        pass
