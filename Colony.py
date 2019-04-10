@@ -1,15 +1,17 @@
 class Colony:
     distanceMatrix = None
     phermoneMatrix = None
-
-    optimalPath = []
+    ants = [] # list of Ant objects
+    bestPathSoFar = []
 
     # returns nothing
     def initializeMatrices(self):
         pass
 
     # return best solution
-    def computeAproximation(self):
+    def releaseTheAnts(self, numAnts):
+        # 
+        
         pass
 
 class Ant:
