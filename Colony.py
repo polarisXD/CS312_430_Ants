@@ -4,6 +4,8 @@ class Colony:
     ants = [] # list of Ant objects
     bestPathSoFar = []
 
+    def __init__(self):
+        pass
     
     # returns nothing
     def initializeMatrices(self):
@@ -11,7 +13,8 @@ class Colony:
 
     # return best Approximate solution
     def releaseTheAnts(self, numAnts):
-        # 
+        for i in range(len(ants)):
+            break
         
         pass
 
@@ -28,8 +31,6 @@ class Ant(Colony):
     def getCosts(self, indexTuples):
         pass
     def getPharmones(self, indexTuples):
-        pass
-    def getTimes(self, indexTuples):
         pass
 
     def getDesire(self, cost, pharmone, time):
