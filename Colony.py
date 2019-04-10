@@ -32,8 +32,6 @@ class Ant(Colony):
         pass
     def getPharmones(self, indexTuples):
         pass
-    def getTimes(self, indexTuples):
-        pass
 
     def getDesire(self, cost, pharmone, time):
         a = 1
