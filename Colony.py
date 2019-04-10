@@ -4,6 +4,7 @@ class Colony:
     ants = [] # list of Ant objects
     bestPathSoFar = []
 
+    
     # returns nothing
     def initializeMatrices(self):
         pass
@@ -14,11 +15,12 @@ class Colony:
         
         pass
 
-class Ant:
+class Ant(Colony):
     currentPath = [] # list of tuples (x and y coordinates)
     totalPathCOst = 0
 
-
+    def __init__(self):
+        MyParentClass.__init__(self)
     def getIndices(self, srcIndex, destIndex):
         pass
     def getCosts(self, indexTuples):
