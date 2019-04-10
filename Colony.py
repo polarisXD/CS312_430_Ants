@@ -11,7 +11,8 @@ class Colony:
 
     # return best Approximate solution
     def releaseTheAnts(self, numAnts):
-        # 
+        for i in range(len(ants)):
+            break
         
         pass
 
