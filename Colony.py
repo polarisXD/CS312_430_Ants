@@ -1,5 +1,6 @@
 class Ant:
-
+    currentPath = [] # list of tuples (x and y coordinates)
+    totalPathCOst = 0
 
 
     def getIndices(self, srcIndex, destIndex):
