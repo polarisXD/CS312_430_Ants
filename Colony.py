@@ -9,7 +9,7 @@ class Colony:
     def initializeMatrices(self):
         pass
 
-    # return best solution
+    # return best Approximate solution
     def releaseTheAnts(self, numAnts):
         # 
         
@@ -20,7 +20,9 @@ class Ant(Colony):
     totalPathCOst = 0
 
     def __init__(self):
-        MyParentClass.__init__(self)
+        super() # allows us to access the Colony matrices by inheriting from it
+        
+        
     def getIndices(self, srcIndex, destIndex):
         pass
     def getCosts(self, indexTuples):
