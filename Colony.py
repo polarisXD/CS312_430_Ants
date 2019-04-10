@@ -4,6 +4,8 @@ class Colony:
     ants = [] # list of Ant objects
     bestPathSoFar = []
 
+    def __init__(self):
+        pass
     
     # returns nothing
     def initializeMatrices(self):
