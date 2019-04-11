@@ -14,8 +14,11 @@ class Colony:
     # returns nothing
     def initializeMatrices(self, cities):
         # Convention: costMatrix[x][y] returns the cost of traveling from index x to index y
-        # FIXME: fill in
-        pass
+        self.distanceMatrix = [[0 for x in range(self.numCities)] for y in range(self.numCities)]
+		for i in range(self.numCities):
+			for j in range(self.numCities):
+				self.distanceMatrix[i][j] = cities[i].costTo(cities[j])
+        self.pharmoneMatrix = [[0 for x in range(self.numCities)] for y in range(self.numCities)]
 
     # return best Approximate solution
     def releaseTheAnts(self, numAnts):
