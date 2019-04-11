@@ -12,6 +12,7 @@ import time
 import numpy as np
 from TSPClasses import *
 from BranchAndBound import *
+from Colony import *
 import heapq
 import itertools
 
@@ -210,4 +211,25 @@ class TSPSolver:
 	'''
 
 	def fancy( self,time_allowance=60.0 ):
-		pass
+		cities = self._scenario.getCities()
+		numAnts = len(cities) // 2
+		startTime = time.time()
+		colony = Colony(cities)
+		bestPath, lowestCost = colony.releaseTheAnts(numAnts)
+		endTime = time.time()
+		
+		results['cost'] = lowestCost
+		results['time'] = end_time - start_time
+		results['count'] = 0
+		results['soln'] = bestPath
+		results['max'] = None
+		results['total'] = None
+		results['pruned'] = None
+		return results
+
+		
+		
+		
+		
+		
+		
