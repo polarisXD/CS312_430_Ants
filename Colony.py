@@ -1,46 +1,65 @@
 class Colony:
     distanceMatrix = None
-    phermoneMatrix = None
-    ants = [] # list of Ant objects
+    pharmoneMatrix = None
+    ants = []  # list of Ant objects
     bestPathSoFar = []
 
-    def __init__(self):
+    def __init__(self, cities):
+        self.initializeMatrices(cities)
         pass
-    
+
     # returns nothing
-    def initializeMatrices(self):
+    def initializeMatrices(self, cities):
         pass
 
     # return best Approximate solution
     def releaseTheAnts(self, numAnts):
-        for i in range(len(ants)):
+        for i in range(len(self.ants)):
             break
-        
+
         pass
+
 
 class Ant(Colony):
-    currentPath = [] # list of tuples (x and y coordinates)
+    currentPath = []  # list of tuples (x and y coordinates)
     totalPathCOst = 0
 
-    def __init__(self):
-        super() # allows us to access the Colony matrices by inheriting from it
-        
-        
-    def getIndices(self, srcIndex, destIndex):
-        pass
-    def getCosts(self, indexTuples):
-        pass
-    def getPharmones(self, indexTuples):
-        pass
+    def __init__(self, cities):
+        super().__init__(cities)  # allows us to access the Colony matrices by inheriting from it
 
-    def getDesire(self, cost, pharmone, time):
+    def getIndices(self, srcIndex):
+        indices = []
+        for i in range(self.distnaceMatrix[srcIndex]):
+            if self.distanceMatrix[srcIndex][i] < float('inf'):
+                indices.append((srcIndex,i))
+        return indices
+
+    def getCosts(self, indexTuples):
+        distances = []
+        for tuple in indexTuples:
+            x = indexTuples[0]
+            y = indexTuples[1]
+            distance = self.distanceMatrix[x][y]
+            distances.append(distance)
+        return distances
+    def getPharmones(self, indexTuples):
+        pharmones = []
+        for tuple in indexTuples:
+            x = indexTuples[0]
+            y = indexTuples[1]
+            pharmone = self.pharmoneMatrix[x][y]
+            pharmones.append(pharmone)
+        return pharmones
+
+
+    def getDesire(self, distance, pharmone):
         a = 1
         b = 1
 
-        inverseCost = 1 / cost
-        total = cost + pharmone
+        inverseCost = 1 / distance
+        total = distance + pharmone
 
-        desire = ((pharmone^a) * (inverseCost^b)) / total
+        desire = ((pharmone ^ a) * (inverseCost ^ b)) / total
 
         return desire
 
@@ -49,22 +68,19 @@ class Ant(Colony):
         # see where we can go
         indices = self.getIndices(currentCityIndex)
 
-        costs = self.getCosts(indices)
+        distances = self.getCosts(indices)
         pharmones = self.getPharmones(indices)
-        times = self.getTimes(indices)
 
         # determine how much we want to go where
         desires = []
-        for i in range(len(costs)):
-            cost = costs[i]
+        for i in range(len(distances)):
+            distance = distances[i]
             pharmone = pharmones[i]
-            time = times[i]
 
-            desire = self.getDesire(cost, pharmone, time)
+            desire = self.getDesire(distance, pharmone)
             desires.append(desire)
 
         # decide where we want to go
-
 
     # returns a path (the currentPath of the ant at the end of its traversal)
     def findPath(self, srcCityIndex):
