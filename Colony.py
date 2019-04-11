@@ -4,6 +4,7 @@ class Colony:
     numCities = 0
     ants = []  # list of Ant objects
     bestPathSoFar = []
+    lowestCostSoFar = 0
 
     def __init__(self, cities):
         self.initializeMatrices(cities)
@@ -13,19 +14,26 @@ class Colony:
     # returns nothing
     def initializeMatrices(self, cities):
         # Convention: costMatrix[x][y] returns the cost of traveling from index x to index y
-
+        # FIXME: fill in
         pass
 
     # return best Approximate solution
     def releaseTheAnts(self, numAnts):
-        for i in range(len(self.ants)):
+        for i in range(numAnts):
+            # pick an ant
             ant = self.ants[i]
+
+            # send it out
             path = ant.findPath(i)
+            cost = ant.totalPathCost
 
+            # evaluate its performance
+            if cost < self.lowestCostSoFar:
+                self.bestPathSoFar = path
+                self.lowestCostSoFar = cost
 
+        return self.bestPathSoFar, self.lowestCostSoFar
 
-
-        pass
 
 
 class Ant(Colony):
