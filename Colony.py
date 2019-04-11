@@ -35,7 +35,6 @@ class Colony:
         return self.bestPathSoFar, self.lowestCostSoFar
 
 
-
 class Ant(Colony):
     currentPath = []  # list of tuples (x and y coordinates)
     totalPathCOst = 0
