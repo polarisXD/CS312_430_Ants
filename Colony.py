@@ -1,11 +1,13 @@
 class Colony:
     distanceMatrix = None
     pharmoneMatrix = None
+    numCities = 0
     ants = []  # list of Ant objects
     bestPathSoFar = []
 
     def __init__(self, cities):
         self.initializeMatrices(cities)
+        self.numCities = len(cities) - 1
         pass
 
     # returns nothing
@@ -29,7 +31,7 @@ class Ant(Colony):
 
     def getIndices(self, srcIndex):
         indices = []
-        for i in range(self.distnaceMatrix[srcIndex]):
+        for i in range(self.distanceMatrix[srcIndex]):
             if self.distanceMatrix[srcIndex][i] < float('inf'):
                 indices.append((srcIndex,i))
         return indices
@@ -63,6 +65,10 @@ class Ant(Colony):
 
         return desire
 
+    def chooseFromDesires(self, desires):
+        # FIXME: FILL IN PROBABILISTIC FUNCTION HERE
+        pass
+
     def moveToNext(self, currentCityIndex):
 
         # see where we can go
@@ -81,12 +87,38 @@ class Ant(Colony):
             desires.append(desire)
 
         # decide where we want to go
+        index = self.chooseFromDesires(desires)
+
 
     # returns a path (the currentPath of the ant at the end of its traversal)
     def findPath(self, srcCityIndex):
-        # find path
+
+        # initialize variables for loop
         pathNotFound = True
-        while pathNotFound:
-            break
+        notDeadEnd = True
+
+        newIndex = srcCityIndex
+        self.currentPath.append(newIndex)
+
+        # generate a path
+        while notDeadEnd and pathNotFound:
+            # move to next city
+            newIndex = self.moveToNext(newIndex)
+            self.currentPath.append(newIndex)
+
+            # check for dead end
+            if (len(set(self.currentPath)) == len(self.currentPath)):
+                notDeadEnd = False
+
+            # check that we have completed the loop
+            if len(self.currentPath) == self.numCities:
+                pathNotFound = False
+
         # update pharmones
-        pass
+        if not pathNotFound and notDeadEnd:
+            for tuple in self.currentPath:
+                x = tuple[0]
+                y = tuple[1]
+                self.pharmoneMatrix[x][y] = self.pharmoneMatrix[x][y] + 1
+
+
