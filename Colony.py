@@ -39,6 +39,7 @@ class Colony:
 class Ant(Colony):
     currentPath = []  # list of tuples (x and y coordinates)
     totalPathCOst = 0
+    pharmoneBonus = 1
 
     def __init__(self, cities):
         super().__init__(cities)  # allows us to access the Colony matrices by inheriting from it
@@ -137,10 +138,15 @@ class Ant(Colony):
 
         # update pharmones
         if not pathNotFound and notDeadEnd:
-            for tuple in self.currentPath:
-                x = tuple[0]
-                y = tuple[1]
-                self.pharmoneMatrix[x][y] = self.pharmoneMatrix[x][y] + 1
 
+            for i in range(len(self.currentPath) - 2): # stop when we have connected the second-to-last node to last node
+                x = self.currentPath[i]
+                y = self.currentPath[i + 1]
+                self.pharmoneMatrix[x][y] = self.pharmoneMatrix[x][y] + self.pharmoneBonus
 
+            # update the step from the last node to the start node
+            lastIndex = self.currentPath[-1]
+            firstIndex = self.currentPath[0]
+            costFromLastToFirst = self.pharmoneMatrix[lastIndex][firstIndex]
+            self.pharmoneMatrix[lastIndex][firstIndex] = costFromLastToFirst + self.pharmoneBonus
 
