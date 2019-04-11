@@ -12,12 +12,18 @@ class Colony:
 
     # returns nothing
     def initializeMatrices(self, cities):
+        # Convention: costMatrix[x][y] returns the cost of traveling from index x to index y
+
         pass
 
     # return best Approximate solution
     def releaseTheAnts(self, numAnts):
         for i in range(len(self.ants)):
-            break
+            ant = self.ants[i]
+            path = ant.findPath(i)
+
+
+
 
         pass
 
@@ -44,6 +50,7 @@ class Ant(Colony):
             distance = self.distanceMatrix[x][y]
             distances.append(distance)
         return distances
+
     def getPharmones(self, indexTuples):
         pharmones = []
         for tuple in indexTuples:
@@ -77,7 +84,7 @@ class Ant(Colony):
         distances = self.getCosts(indices)
         pharmones = self.getPharmones(indices)
 
-        # determine how much we want to go where
+        # determine how much we want to go there
         desires = []
         for i in range(len(distances)):
             distance = distances[i]
@@ -87,7 +94,14 @@ class Ant(Colony):
             desires.append(desire)
 
         # decide where we want to go
-        index = self.chooseFromDesires(desires)
+        nextCityIndex = self.chooseFromDesires(desires)
+
+        # update the cost and path for going there
+        cost = self.distanceMatrix[currentCityIndex][nextCityIndex]
+        self.totalPathCost = self.totalPathCost + cost
+        self.currentPath.append(nextCityIndex)
+
+        return nextCityIndex
 
 
     # returns a path (the currentPath of the ant at the end of its traversal)
@@ -104,13 +118,12 @@ class Ant(Colony):
         while notDeadEnd and pathNotFound:
             # move to next city
             newIndex = self.moveToNext(newIndex)
-            self.currentPath.append(newIndex)
 
             # check for dead end
             if (len(set(self.currentPath)) == len(self.currentPath)):
                 notDeadEnd = False
 
-            # check that we have completed the loop
+            # check if we have completed the loop
             if len(self.currentPath) == self.numCities:
                 pathNotFound = False
 
@@ -120,5 +133,6 @@ class Ant(Colony):
                 x = tuple[0]
                 y = tuple[1]
                 self.pharmoneMatrix[x][y] = self.pharmoneMatrix[x][y] + 1
+
 
 
