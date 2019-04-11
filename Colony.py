@@ -149,4 +149,6 @@ class Ant(Colony):
             firstIndex = self.currentPath[0]
             costFromLastToFirst = self.pharmoneMatrix[lastIndex][firstIndex]
             self.pharmoneMatrix[lastIndex][firstIndex] = costFromLastToFirst + self.pharmoneBonus
+            
+        return self.currentPath
 
