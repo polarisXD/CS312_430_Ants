@@ -66,7 +66,7 @@ class TSPSolver:
 		results['pruned'] = None
 		print(bssf.route)
 		return results
-		
+
 	def create_matrix(self, cities):
 		matrix = []
 		for i in range(len(cities)):
@@ -116,45 +116,53 @@ class TSPSolver:
 		cities = self._scenario.getCities()
 		ncities = len(cities)
 		reduced_matrix, lower_bound = self.reduce_matrix(self.create_matrix(cities), 0, ncities)
-		foundTour = False
 		count = 0
 		bssf = None
 		start_time = time.time()
-		row = 0
-		path = [row]
-		parent_matrix = np.copy(reduced_matrix)
-		states = [(parent_matrix,lower_bound,0,path)] #matrix, lower_bound, which node you're coming from
-		while not foundTour and time.time()-start_time < time_allowance:
-			current_state = states.pop() #should get next minimum value
-			current_matrix = np.copy(current_state[0])
-			current_lower_bound = current_state[1]
-			current_depth = current_state[2]
-
-			current_row = current_state[3][-1]
-			current_path = current_state[3]
-			if current_depth == ncities:
-				if current_row == 0:
-					#found solution
+		for i in range(ncities):
+			foundTour = False
+			#print("Start city:", i)
+			start_city = i
+			current_row = start_city
+			path = [start_city]
+			parent_matrix = np.copy(reduced_matrix)
+			states = [(parent_matrix,lower_bound,0,path)] #matrix, lower_bound, which node you're coming from
+			while not foundTour and time.time()-start_time < time_allowance:
+				current_state = states[-1]
+				child_matrix = np.copy(current_state[0])
+				current_lower_bound = current_state[1]
+				current_depth = current_state[2]
+				current_path = current_state[3]
+				current_row = current_path[-1]
+				if current_depth == ncities:
 					foundTour = True
-					count += 1
-					bssf = TSPSolution([cities[x] for x in current_path[:-1]])
+					if current_row == start_city:
+						#made it back to start city
+						solution = TSPSolution([cities[x] for x in current_path[:-1]])
+						if solution.cost < math.inf:
+							count += 1
+						#print("Cost:",solution.cost)
+						if not bssf:
+							bssf = solution
+						elif solution.cost < bssf.cost:
+							bssf = solution
+					else:
+						#not a valid solution
+						continue
 				else:
-					#invalid solution
-					continue
-			else:
-				current_matrix, current_lower_bound = self.reduce_matrix(current_matrix, current_lower_bound, ncities)
-				children_costs = np.copy(current_matrix[current_row])
-				children_costs = [(children_costs[i],i) for i in range(len(children_costs))]
-				descending_costs = sorted(children_costs, reverse=True) #makes minimum cost get appended last
-				for cost in descending_costs:
-					child_matrix = np.copy(current_matrix)
-					if cost[0] < math.inf:
-						column = cost[1]
-						child_lower_bound = current_lower_bound + cost[0]
-						child_matrix[current_row,:] = math.inf
-						child_matrix[:,column] = math.inf
-						child_matrix[column,current_row] = math.inf
-						states.append((child_matrix,child_lower_bound,current_depth + 1, current_path + [column]))
+					child_matrix, current_lower_bound = self.reduce_matrix(child_matrix, current_lower_bound, ncities)
+					min_pos = np.argmin(child_matrix[current_row])
+					if min_pos == start_city and current_depth + 1 != ncities: #check for unvisited cities
+						#get next minimum
+						costs = np.copy(child_matrix[current_row])
+						costs = [(costs[i],i) for i in range(len(costs))]
+						min_pos = sorted(costs)[1][1]
+					min_cost = child_matrix[current_row][min_pos]
+					child_matrix[current_row,:] = math.inf
+					child_matrix[:,min_pos] = math.inf
+					child_matrix[min_pos,current_row] = math.inf
+					child_lower_bound = current_lower_bound + min_cost
+					states.append((child_matrix,child_lower_bound,current_depth + 1, current_path + [min_pos]))
 		end_time = time.time()
 		results['cost'] = bssf.cost if foundTour else math.inf
 		results['time'] = end_time - start_time
@@ -224,7 +232,7 @@ class TSPSolver:
 				finalCost = lowestCost
 				finalPath = bestPath
 		endTime = time.time()
-		
+
 		results['cost'] = finalCost
 		results['time'] = end_time - start_time
 		results['count'] = 0
@@ -233,10 +241,3 @@ class TSPSolver:
 		results['total'] = None
 		results['pruned'] = None
 		return results
-
-		
-		
-		
-		
-		
-		
