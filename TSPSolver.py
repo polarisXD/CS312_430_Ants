@@ -64,7 +64,7 @@ class TSPSolver:
 		results['max'] = None
 		results['total'] = None
 		results['pruned'] = None
-		print(bssf.route)
+		#print(bssf.route)
 		return results
 
 	def create_matrix(self, cities):
