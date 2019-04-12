@@ -18,12 +18,12 @@ class Colony:
     def initializeMatrices(self, cities):
         # Convention: costMatrix[x][y] returns the cost of traveling from index x to index y
         self.distanceMatrix = [[0 for x in range(self.numCities)] for y in range(self.numCities)]
-
         for i in range(self.numCities):
             for j in range(self.numCities):
                 self.distanceMatrix[i][j] = cities[i].costTo(cities[j])
 
         self.pharmoneMatrix = [[0 for x in range(self.numCities)] for y in range(self.numCities)]
+
 
     # return best Approximate solution
     def releaseTheAnts(self, numAnts, colony):
@@ -80,28 +80,16 @@ class Ant():
     def getDesire(self, distance, pharmone):
         a = 1.0
         b = 1.0
-        if distance > 0:
-            inverseDistance = (1.0) / distance
-        else:
-            inverseDistance = 0 # FIXME: This might not be the best fix
-        total = float(distance + pharmone)
 
-        if total > 0:
-            desire = (math.pow(pharmone, a) * math.pow(inverseDistance,b)) / total
-        else:
-            desire = 1 # FIXME: This might not be the best fix
-
-        print(distance)
-        print(desire)
-        print()
-
+        inverseDistance = 1.0 / distance
+        desire = (math.pow(pharmone, a) * math.pow(inverseDistance,b))
 
         return desire
 
     def chooseFromDesires(self, desires):
-        # FIXME: FILL IN PROBABILISTIC FUNCTION HERE
+        totalDesires = sum(desires)
+         # FIXME: FILL IN PROBABILISTIC FUNCTION HERE
 
-        pass
 
     def moveToNext(self, currentCityIndex):
 
