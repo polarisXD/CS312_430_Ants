@@ -85,7 +85,8 @@ class Ant():
         desire = (math.pow(pharmone, a) * math.pow(inverseDistance,b))
 
         return desire
-
+    
+    # return the index of the value in "desires" (not the index of the city) that the ant wants to go to most.
     def chooseFromDesires(self, desires):
         totalDesires = sum(desires)
          # FIXME: FILL IN PROBABILISTIC FUNCTION HERE
@@ -109,7 +110,7 @@ class Ant():
             desires.append(desire)
 
         # decide where we want to go
-        nextCityIndex = self.chooseFromDesires(desires)
+        nextCityIndex = indices[self.chooseFromDesires(desires)]
 
         # update the cost and path for going there
         cost = self.colony.distanceMatrix[currentCityIndex][nextCityIndex]
