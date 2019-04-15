@@ -4,17 +4,12 @@ import random
 
 
 class Colony:
-    distanceMatrix = None
-    pharmoneMatrix = None
-    numCities = 0
-    cities = None
-    bestPathSoFar = []
-    lowestCostSoFar = float('inf')
 
     def __init__(self, cities):
         self.cities = cities
         self.numCities = len(cities)
         self.initializeMatrices(cities)
+        self.lowestCostSoFar = float("inf")
 
     # returns nothing
     def initializeMatrices(self, cities):
@@ -28,24 +23,38 @@ class Colony:
         self.pharmoneMatrix = np.ndarray((self.numCities, self.numCities))
         self.pharmoneMatrix[:,:] = 1
 
+
     # return best Approximate solution
     def releaseTheAnts(self, numAnts, colony):
         for i in range(numAnts):
             # pick an ant
             ant = Ant(colony)
+            cost = None
+            path = None
 
-            # send it out
-            path = ant.findPath(i)
-            cost = ant.totalPathCost
+            # find a solution
+            noSolutionFound = True
+            while noSolutionFound: # FIXME
+                ant.currentPath = []
+                ant.totalPathCost = 0
 
-            # evaluate its performance
+                # send it out
+                index = random.randint(1, self.numCities - 1)
+                path = ant.findPath(index)
+                cost = ant.totalPathCost
+
+                # check that it is a complete path
+                if (len(path) == colony.numCities) and cost != float('inf'):
+                    noSolutionFound = False
+
+            # evaluate path length
             if cost < self.lowestCostSoFar:
                 self.bestPathSoFar = []
                 for cityIndex in path:
                     self.bestPathSoFar.append(self.cities[cityIndex])
-
                 self.lowestCostSoFar = cost
 
+        # return best path so far
         return self.bestPathSoFar, self.lowestCostSoFar
 
 
@@ -171,7 +180,6 @@ class Ant():
 
         # generate a path
         while notDeadEnd and pathNotFound:
-            # print(len(self.currentPath))
 
             # move to next city
             newIndex = self.moveToNext(newIndex)
@@ -181,14 +189,20 @@ class Ant():
                 notDeadEnd = False
 
             # check if we have completed the loop
-            if len(self.currentPath) == Colony.numCities:
-                pathNotFound = False
+            if len(self.currentPath) == self.colony.numCities:
+                # check that we can get back to the start city
+                self.totalPathCost = self.totalPathCost + self.colony.distanceMatrix[self.currentPath[len(self.currentPath) - 1]][self.currentPath[0]]
+                if self.totalPathCost != float('inf'):
+                    pathNotFound = False
+                else:
+
+                    break
 
 
 
         # update pharmones
         if not pathNotFound and notDeadEnd:
-
+            # FIXME: THIS ISN"T UPDATING
             for i in range(
                     len(self.currentPath) - 2):  # stop when we have connected the second-to-last node to last node
                 x = self.currentPath[i]
@@ -201,6 +215,4 @@ class Ant():
             pharmonesFromLastToFirst = self.colony.pharmoneMatrix[lastIndex][firstIndex]
             self.colony.pharmoneMatrix[lastIndex][firstIndex] = pharmonesFromLastToFirst + self.pharmoneBonus
 
-        # print(self.currentPath)
-        # print(self.totalPathCost)
         return self.currentPath
