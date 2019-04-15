@@ -34,7 +34,7 @@ class Colony:
 
             # find a solution
             noSolutionFound = True
-            while noSolutionFound: # FIXME
+            while noSolutionFound:  # FIXME
                 ant.currentPath = []
                 ant.totalPathCost = 0
 
@@ -126,7 +126,7 @@ class Ant():
     # return the index of the value in "desires" (not the index of the city) that the ant wants to go to most.
     def chooseFromDesires(self, desires):
         # FIXME: Pharmones may be dominating after one round (the ants keep going back to the same path every time)
-        choice = (random.randint(1, 100) / 100)
+        choice = (random.randint(1, 10000) / 10000)
 
         threshold = 0
         for i in range(len(desires)):
