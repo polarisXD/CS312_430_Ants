@@ -1,220 +1,244 @@
+# !/usr/bin/python3
+
+from which_pyqt import PYQT_VER
+
+if PYQT_VER == 'PYQT5':
+    from PyQt5.QtCore import QLineF, QPointF
+else:
+    raise Exception('Unsupported Version of PyQt: {}'.format(PYQT_VER))
+
+import time
 import numpy as np
-import math
-import random
+from TSPClasses import *
+from BranchAndBound import *
+from Colony import *
+import heapq
+import itertools
 
 
-class Colony:
+class TSPSolver:
+    def __init__(self, gui_view):
+        self._scenario = None
 
-    def __init__(self, cities):
-        self.cities = cities
-        self.numCities = len(cities)
-        self.initializeMatrices(cities)
-        self.lowestCostSoFar = float("inf")
+    def setupWithScenario(self, scenario):
+        self._scenario = scenario
 
-    # returns nothing
-    def initializeMatrices(self, cities):
-        # Convention: costMatrix[x][y] returns the cost of traveling from index x to index y
-        # self.distanceMatrix = [[0 for x in range(self.numCities)] for y in range(self.numCities)]
-        self.distanceMatrix = np.ndarray((self.numCities, self.numCities))
-        for i in range(self.numCities):
-            for j in range(self.numCities):
-                self.distanceMatrix[i][j] = cities[i].costTo(cities[j])
+    ''' <summary>
+        This is the entry point for the default solver
+        which just finds a valid random tour.  Note this could be used to find your
+        initial BSSF.
+        </summary>
+        <returns>results dictionary for GUI that contains three ints: cost of solution,
+        time spent to find solution, number of permutations tried during search, the
+        solution found, and three null values for fields not used for this
+        algorithm</returns>
+    '''
 
-        self.pharmoneMatrix = np.ndarray((self.numCities, self.numCities))
-        self.pharmoneMatrix[:,:] = 1
+    def defaultRandomTour(self, time_allowance=60.0):
+        results = {}
+        cities = self._scenario.getCities()
+        ncities = len(cities)
+        foundTour = False
+        count = 0
+        bssf = None
+        start_time = time.time()
+        while not foundTour and time.time() - start_time < time_allowance:
+            # create a random permutation
+            perm = np.random.permutation(ncities)
+            route = []
+            # Now build the route using the random permutation
+            for i in range(ncities):
+                route.append(cities[perm[i]])
+            bssf = TSPSolution(route)
+            count += 1
+            if bssf.cost < np.inf:
+                # Found a valid route
+                foundTour = True
+        end_time = time.time()
+        results['cost'] = bssf.cost if foundTour else math.inf
+        results['time'] = end_time - start_time
+        results['count'] = count
+        results['soln'] = bssf
+        results['max'] = None
+        results['total'] = None
+        results['pruned'] = None
+        print(bssf.route)
+        return results
 
+    def create_matrix(self, cities):
+        matrix = []
+        for i in range(len(cities)):
+            costs_row = []
+            for j in range(len(cities)):
+                costs_row.append(cities[i].costTo(cities[j]))
+            matrix.append(costs_row)
+        # print("Initial matrix:")
+        # print(np.copy(matrix))
+        return np.copy(matrix)
 
-    # return best Approximate solution
-    def releaseTheAnts(self, numAnts, colony):
-        for i in range(numAnts):
-            # pick an ant
-            ant = Ant(colony)
-            cost = None
-            path = None
+    def reduce_matrix(self, matrix, initial_lower_bound, ncities):
+        lower_bound = initial_lower_bound
+        for i in range(ncities):
+            min_cost = min(matrix[i, :])
+            if min_cost == 0:
+                continue
+            elif min_cost < math.inf:
+                matrix[i, :] -= min_cost
+                lower_bound += min_cost
+        for j in range(ncities):
+            min_cost = min(matrix[:, j])
+            if min_cost == 0:
+                continue
+            elif min_cost < math.inf:
+                matrix[:, j] -= min_cost
+                lower_bound += min_cost
+        # print("Reduced:")
+        # print(np.copy(matrix))
+        # print("Lower bound:",lower_bound)
+        return matrix, lower_bound
 
-            # find a solution
-            noSolutionFound = True
-            while noSolutionFound: # FIXME
-                ant.currentPath = []
-                ant.totalPathCost = 0
+    ''' <summary>
+        This is the entry point for the greedy solver, which you must implement for
+        the group project (but it is probably a good idea to just do it for the branch-and
+        bound project as a way to get your feet wet).  Note this could be used to find your
+        initial BSSF.
+        </summary>
+        <returns>results dictionary for GUI that contains three ints: cost of best solution,
+        time spent to find best solution, total number of solutions found, the best
+        solution found, and three null values for fields not used for this
+        algorithm</returns>
+    '''
 
-                # send it out
-                index = random.randint(1, self.numCities - 1)
-                path = ant.findPath(index)
-                cost = ant.totalPathCost
+    def greedy(self, time_allowance=60.0):
+        results = {}
+        cities = self._scenario.getCities()
+        ncities = len(cities)
+        reduced_matrix, lower_bound = self.reduce_matrix(self.create_matrix(cities), 0, ncities)
+        foundTour = False
+        count = 0
+        bssf = None
+        start_time = time.time()
+        row = 0
+        path = [row]
+        parent_matrix = np.copy(reduced_matrix)
+        states = [(parent_matrix, lower_bound, 0, path)]  # matrix, lower_bound, which node you're coming from
+        while not foundTour and time.time() - start_time < time_allowance:
+            current_state = states.pop()  # should get next minimum value
+            current_matrix = np.copy(current_state[0])
+            current_lower_bound = current_state[1]
+            current_depth = current_state[2]
 
-                # check that it is a complete path
-                if (len(path) == colony.numCities) and cost != float('inf'):
-                    noSolutionFound = False
-
-            # evaluate path length
-            if cost < self.lowestCostSoFar:
-                self.bestPathSoFar = []
-                for cityIndex in path:
-                    self.bestPathSoFar.append(self.cities[cityIndex])
-                self.lowestCostSoFar = cost
-
-                if cost == float("inf"):
-
-        # return best path so far
-        return self.bestPathSoFar, self.lowestCostSoFar
-
-
-class Ant():
-    currentPath = []  # list of tuples (x and y coordinates)
-    totalPathCost = 0
-    pharmoneBonus = 1
-    colony = None
-
-    def __init__(self, colony):
-        self.currentPath = []  # list of tuples (x and y coordinates)
-        self.totalPathCost = 0
-        self.pharmoneBonus = 1
-        self.colony = colony
-
-    def getIndices(self, srcIndex):
-        indices = []
-        for i in range(len(self.colony.distanceMatrix[srcIndex])):
-            if self.colony.distanceMatrix[srcIndex][i] < float('inf'):
-                if i not in self.currentPath:
-                    indices.append((srcIndex, i))
-        return indices
-
-    def getCosts(self, indexTuples):
-        distances = []
-        for tuple in indexTuples:
-            x = tuple[0]
-            y = tuple[1]
-            distance = self.colony.distanceMatrix[x][y]
-            distances.append(distance)
-        return distances
-
-    def getPharmones(self, indexTuples):
-        pharmones = []
-        for tuple in indexTuples:
-            x = tuple[0]
-            y = tuple[1]
-            pharmone = self.colony.pharmoneMatrix[x][y]
-            pharmones.append(pharmone)
-        return pharmones
-
-    def getDesire(self, distance, pharmone):
-        a = 1.0
-        b = 1.0
-
-        if distance == 0:
-            return float('inf')
-        else:
-            inverseDistance = 1.0 / distance
-            desire = (math.pow(pharmone, a) * math.pow(inverseDistance, b))
-
-            return desire
-
-    def normalizeDesires(self, desires):
-        totalDesires = sum(desires)
-
-        if totalDesires == float('inf'):
-            for i in range(len(desires)):
-                if desires[i] == float('inf'):
-                    desires[i] = 1
+            current_row = current_state[3][-1]
+            current_path = current_state[3]
+            if current_depth == ncities:
+                if current_row == 0:
+                    # found solution
+                    foundTour = True
+                    count += 1
+                    bssf = TSPSolution([cities[x] for x in current_path[:-1]])
                 else:
-                    desires[i] = 0
-        else:
-            for i in range(len(desires)):
-                desires[i] = (desires[i] / totalDesires)
+                    # invalid solution
+                    continue
+            else:
+                current_matrix, current_lower_bound = self.reduce_matrix(current_matrix, current_lower_bound, ncities)
+                children_costs = np.copy(current_matrix[current_row])
+                children_costs = [(children_costs[i], i) for i in range(len(children_costs))]
+                descending_costs = sorted(children_costs, reverse=True)  # makes minimum cost get appended last
+                for cost in descending_costs:
+                    child_matrix = np.copy(current_matrix)
+                    if cost[0] < math.inf:
+                        column = cost[1]
+                        child_lower_bound = current_lower_bound + cost[0]
+                        child_matrix[current_row, :] = math.inf
+                        child_matrix[:, column] = math.inf
+                        child_matrix[column, current_row] = math.inf
+                        states.append((child_matrix, child_lower_bound, current_depth + 1, current_path + [column]))
+        end_time = time.time()
+        results['cost'] = bssf.cost if foundTour else math.inf
+        results['time'] = end_time - start_time
+        results['count'] = count
+        results['soln'] = bssf
+        results['max'] = None
+        results['total'] = None
+        results['pruned'] = None
+        return results
 
-        return desires
+    ''' <summary>
+        This is the entry point for the branch-and-bound algorithm that you will implement
+        </summary>
+        <returns>results dictionary for GUI that contains three ints: cost of best solution,
+        time spent to find best solution, total number solutions found during search (does
+        not include the initial BSSF), the best solution found, and three more ints:
+        max queue size, total number of states created, and number of pruned states.</returns>
+    '''
 
-    # return the index of the value in "desires" (not the index of the city) that the ant wants to go to most.
-    def chooseFromDesires(self, desires):
-        # FIXME: Pharmones may be dominating after one round (the ants keep going back to the same path every time)
-        choice = (random.randint(1, 100) / 100)
+    def branchAndBound(self, time_allowance=60.0):
+        pass
+        # cities = self._scenario.getCities()
+        tsp = TSP()
+        cities = self._scenario.getCities()
+        starterNode = tsp.getStarter(cities)
+        tsp.makeStateSpaceTree(cities)
+        tsp.chewPriorityQueue(time_allowance)
+        # cost = tsp.upperBound
+        # route = tsp.path
 
-        threshold = 0
-        for i in range(len(desires)):
-            threshold = threshold + desires[i]
-            if choice < threshold:
-                return i
-        # # It shouldn't run this line of code, but it may need to
-        return 0
+        # print(cost)
+        # print(route)
+        results = {}
+        solution = TSPSolution(tsp.path)
+        results['cost'] = tsp.upperBound
+        results['time'] = tsp.time
+        results['count'] = tsp.numSolutions
+        results['soln'] = solution
+        results['max'] = tsp.maxQueueSize
+        results['total'] = tsp.totalStates
+        results['pruned'] = tsp.numPruned
+        return results
 
-    def moveToNext(self, currentCityIndex):
+    ''' <summary>
+        This is the entry point for the algorithm you'll write for your group project.
+        </summary>
+        <returns>results dictionary for GUI that contains three ints: cost of best solution,
+        time spent to find best solution, total number of solutions found during search, the
+        best solution found.  You may use the other three field however you like.
+        algorithm</returns>
+    '''
 
-        # see where we can go
-        indices = self.getIndices(currentCityIndex)
-
-        distances = self.getCosts(indices)
-        pharmones = self.getPharmones(indices)
-
-        # determine how much we want to go there
-        desires = []
-        for i in range(len(distances)):
-            distance = distances[i]
-            pharmone = pharmones[i]
-
-            desire = self.getDesire(distance, pharmone)
-            desires.append(desire)
-
-        # decide where we want to go
-        desires = self.normalizeDesires(desires)
-        if len(desires) > 0:
-            nextCityIndex = indices[self.chooseFromDesires(desires)][1]
-
-            # update the cost and path for going there
-            cost = self.colony.distanceMatrix[currentCityIndex][nextCityIndex]
-            self.totalPathCost = self.totalPathCost + cost
-            self.currentPath.append(nextCityIndex)
-
-            return nextCityIndex
-
-        else:
-            return None
-
-    # returns a path (the currentPath of the ant at the end of its traversal)
-    def findPath(self, srcCityIndex):
-
-        # initialize variables for loop
-        pathNotFound = True
-        notDeadEnd = True
-
-        newIndex = srcCityIndex
-        self.currentPath.append(newIndex)
-
-        # generate a path
-        while notDeadEnd and pathNotFound:
-
-            # move to next city
-            newIndex = self.moveToNext(newIndex)
-
-            # check for dead end
-            if newIndex == None:
-                notDeadEnd = False
-
-            # check if we have completed the loop
-            if len(self.currentPath) == self.colony.numCities:
-                # check that we can get back to the start city
-                self.totalPathCost = self.totalPathCost + self.colony.distanceMatrix[self.currentPath[len(self.currentPath) - 1]][self.currentPath[0]]
-                if self.totalPathCost != float('inf'):
-                    pathNotFound = False
-                else:
-
-                    break
+    def fancy(self, time_allowance=60.0):
+        results = {}
+        finalPath = []
+        finalCost = float('inf')
+        cities = self._scenario.getCities()
+        numAnts = len(cities) // 2
+        loopTimes = 100
+        startTime = time.time()
+        print(len(cities))
+        colony = Colony(cities)
 
 
+        for i in range(loopTimes):
+            if (time.time() - startTime > time_allowance):
+                break
+            bestPath, lowestCost = colony.releaseTheAnts(numAnts, colony)
+            if (finalCost > lowestCost):
+                finalCost = lowestCost
+                finalPath = bestPath
 
-        # update pharmones
-        if not pathNotFound and notDeadEnd:
-            # FIXME: THIS ISN"T UPDATING
-            for i in range(
-                    len(self.currentPath) - 2):  # stop when we have connected the second-to-last node to last node
-                x = self.currentPath[i]
-                y = self.currentPath[i + 1]
-                self.colony.pharmoneMatrix[x][y] = self.colony.pharmoneMatrix[x][y] + self.pharmoneBonus
+        endTime = time.time()
+        solution = TSPSolution(colony.bestPathSoFar)
 
-            # update the step from the last node to the start node
-            lastIndex = self.currentPath[-1]
-            firstIndex = self.currentPath[0]
-            pharmonesFromLastToFirst = self.colony.pharmoneMatrix[lastIndex][firstIndex]
-            self.colony.pharmoneMatrix[lastIndex][firstIndex] = pharmonesFromLastToFirst + self.pharmoneBonus
+        if solution.cost == float('inf'):
+            for city in bestPath:
+                print(city._index)
+            print('here')
 
-        return self.currentPath
+
+        results['cost'] = solution.cost
+        results['time'] = endTime - startTime
+        results['count'] = 0
+        results['soln'] = solution
+        results['max'] = None
+        results['total'] = None
+        results['pruned'] = None
+        return results
