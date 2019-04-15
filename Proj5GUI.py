@@ -511,7 +511,7 @@ class Proj5GUI( QMainWindow ):
 	def algChanged(self, text):
 		pass
 
-C:\Users\BCBrown\PycharmProjects\TravelingSalesPerson\Proj5GUI.py
+# C:\Users\BCBrown\PycharmProjects\TravelingSalesPerson\Proj5GUI.py
 
 if __name__ == '__main__':
 	# This line allows CNTL-C in the terminal to kill the program

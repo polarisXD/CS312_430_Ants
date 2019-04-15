@@ -218,25 +218,33 @@ class TSPSolver:
 		algorithm</returns>
 	'''
 
-	def fancy( self,time_allowance=60.0 ):
+	def fancy(self, time_allowance=60.0):
 		finalPath = []
 		finalCost = float('inf')
 		cities = self._scenario.getCities()
 		numAnts = len(cities) // 2
-		loopTimes = 10
-		startTime = time.time()
+		start_time = time.time()
 		colony = Colony(cities)
-		for i in range(loopTimes):
+		current_time = time.time()
+		solution_count = 0
+
+		while current_time - start_time < time_allowance:
 			bestPath, lowestCost = colony.releaseTheAnts(numAnts)
-			if(finalCost > lowestCost):
+			if lowestCost < finalCost:
 				finalCost = lowestCost
 				finalPath = bestPath
-		endTime = time.time()
+				solution_count += 1
+			current_time = time.time()
 
+		results = {}
 		results['cost'] = finalCost
-		results['time'] = end_time - start_time
-		results['count'] = 0
-		results['soln'] = finalPath
+		results['time'] = current_time - start_time
+		results['count'] = solution_count
+		cities = self._scenario.getCities()
+		city_path = []
+		for i in range(len(finalPath)):
+			city_path.append(cities[finalPath[i]])
+		results['soln'] = TSPSolution(city_path)
 		results['max'] = None
 		results['total'] = None
 		results['pruned'] = None
