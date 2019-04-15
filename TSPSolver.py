@@ -62,7 +62,7 @@ class TSPSolver:
         results['max'] = None
         results['total'] = None
         results['pruned'] = None
-        print(bssf.route)
+        # print(bssf.route)
         return results
 
     def create_matrix(self, cities):
@@ -213,7 +213,7 @@ class TSPSolver:
         numAnts = len(cities) // 2
         loopTimes = 100
         startTime = time.time()
-        print(len(cities))
+        # print(len(cities))
         colony = Colony(cities)
 
 
