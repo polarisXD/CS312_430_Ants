@@ -40,7 +40,10 @@ class Colony:
 
             # evaluate its performance
             if cost < self.lowestCostSoFar:
-                self.bestPathSoFar = path
+                self.bestPathSoFar = []
+                for cityIndex in path:
+                    self.bestPathSoFar.append(self.cities[cityIndex])
+
                 self.lowestCostSoFar = cost
 
         return self.bestPathSoFar, self.lowestCostSoFar
